@@ -20,7 +20,7 @@ CONFIG = {
     'MAX_FILE_SIZE_MB': 100,
     'CHUNK_SIZE': 64 * 1024,  # 64KB chunks
     'EXCLUDED_EXTENSIONS': {'.py', '.pyc', '.pyo', '.key', '.log'},
-    'EXCLUDED_FILES': {'encrypt.py', 'decrypt.py', 'encrypt_fixed.py', 'decrypt_fixed.py', 'thekey.key', 'voldemort.py'}
+    'EXCLUDED_FILES': {'encrypt.py', 'decrypt.py', 'encrypt_fixed.py', 'decrypt_fixed.py', 'thekey.key'}
 }
 
 class DecryptionError(Exception):
@@ -217,15 +217,6 @@ def confirm_operation(files: List[Path], root_folder: Path) -> bool:
     print(f"\n⚠️  WARNING: This will decrypt files in-place!")
     print(f"   Encrypted files will be replaced with decrypted versions.")
     print(f"   Make sure you have backups of the encrypted files!")
-    
-    while True:
-        response = input("\n❓ Do you want to proceed? (yes/no): ").lower().strip()
-        if response in ['yes', 'y']:
-            return True
-        elif response in ['no', 'n']:
-            return False
-        else:
-            print("Please enter 'yes' or 'no'")
 
 def main():
     """Main decryption process with comprehensive error handling"""
