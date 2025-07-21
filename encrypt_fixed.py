@@ -238,15 +238,7 @@ def confirm_operation(files: List[Path], root_folder: Path) -> bool:
     
     print(f"\n⚠️  WARNING: This will encrypt files in-place!")
     print(f"   Original files will be replaced with encrypted versions.")
-    
-    while True:
-        response = input("\n❓ Do you want to proceed? (yes/no): ").lower().strip()
-        if response in ['yes', 'y']:
-            return True
-        elif response in ['no', 'n']:
-            return False
-        else:
-            print("Please enter 'yes' or 'no'")
+
 
 def main():
     """Main encryption process with comprehensive error handling"""
