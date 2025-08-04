@@ -19,7 +19,7 @@ def generate_key_from_password(password):
 def list_all_files(root_directory):
     """Lists all files in directory and subdirectories safely"""
     all_files = []
-    excluded_files = {"voldemort.py", "encrypt.py", "decrypt.py", "thekey.key"}
+    excluded_files = {"encrypt.py", "decrypt.py", "thekey.key"}
     
     for dirpath, dirnames, filenames in os.walk(root_directory):
         for filename in filenames:
