@@ -1,18 +1,14 @@
 # Python Encryption and SSH Simulation
 
----
-
 ## Notice
-This project is for **educational and research purposes only**.  
-It is an experimental script and has **not been fully tested**.  
-Any use of this code for malicious purposes is strictly prohibited.  
-The author takes **no responsibility** for any misuse or damages.  
-
----
+This project is for educational and research purposes only.  
+It is an experimental script and has not been fully tested.  
+Using it for malicious purposes is strictly forbidden.  
+The author is not responsible for any misuse or damage.
 
 ## About
-This code explores:
+This script demonstrates:
 
-- Network scanning and SSH connections  
-- File encryption and decryption with Python  
-- Password-based key generation
+- Scanning networks and connecting via SSH  
+- Encrypting and decrypting files with Python  
+- Generating keys from passwords for encryption
