@@ -4,32 +4,35 @@
 
 ## Table of Contents
 
-- Overview
-- Features
-- System Architecture
-- Installation Guide
-  - C2 Server Installation
-  - Worm Deployment
-- C2 Server Commands
-  - Encryption Commands
-  - Keylogger Commands
-  - Webcam Commands
-  - System Commands
-  - Data Exfiltration Commands
-  - Persistence Commands
-  - Ransomware Commands
-  - Miscellaneous Commands
-- API Reference
-- Troubleshooting
-- Security Considerations
-- Command Examples
-- File Structure
-- Update Process
-- Support
-- Disclaimer
-- License
-- Quick Reference Card
-
+- [Overview](#overview)
+- [Features](#features)
+- [System Architecture](#system-architecture)
+- [Installation Guide](#installation-guide)
+  - [C2 Server Installation](#c2-server-installation)
+  - [Initial Server Configuration](#initial-server-configuration)
+  - [Worm Deployment](#worm-deployment)
+- [C2 Server Commands](#c2-server-commands)
+  - [Encryption Commands](#encryption-commands)
+  - [Keylogger Commands](#keylogger-commands)
+  - [Webcam Commands](#webcam-commands)
+  - [System Commands](#system-commands)
+  - [Data Exfiltration Commands](#data-exfiltration-commands)
+  - [Persistence Commands](#persistence-commands)
+  - [Ransomware Commands](#ransomware-commands)
+  - [Mining Commands](#mining-commands)
+  - [Miscellaneous Commands](#miscellaneous-commands)
+- [API Reference](#api-reference)
+  - [REST Endpoints](#rest-endpoints)
+  - [API Examples](#api-examples)
+  - [WebSocket Events](#websocket-events)
+- [Troubleshooting](#troubleshooting)
+- [Security Considerations](#security-considerations)
+- [File Structure](#file-structure)
+- [Update Process](#update-process)
+- [Support](#support)
+- [Disclaimer](#disclaimer)
+- [License](#license)
+- [Quick Reference](#quick-reference)
 ---
 
 ## Overview
