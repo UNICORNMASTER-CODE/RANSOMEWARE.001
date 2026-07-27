@@ -133,7 +133,7 @@ The system consists of three main components working together:
 #### Quick Install (All Operating Systems)
 
 # 1. Install Python dependencies
-`pip install Flask==2.3.2 Flask-SocketIO==5.3.4 python-socketio==5.8.0 eventlet==0.33.3
+` pip install Flask==2.3.2 Flask-SocketIO==5.3.4 python-socketio==5.8.0 eventlet==0.33.3 
 
 # 2. Run the server
 python c2_server.py
