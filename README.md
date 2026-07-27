@@ -32,8 +32,6 @@
 - [File Structure](#file-structure)
 - [Update Process](#update-process)
 - [Support](#support)
-- [Disclaimer](#disclaimer)
-- [License](#license)
 - [Quick Reference](#quick-reference)
 ---
 # Quick Start Guide
@@ -641,22 +639,6 @@ python3 worm.py --debug
 
 tail -f c2_server.log
 ```
-
----
-
-# Disclaimer
-
-This software is for educational and security research purposes only.
-
-- Do not use on systems without explicit authorization.
-- The author is not responsible for misuse.
-- Follow all applicable laws.
-
----
-
-# License
-
-Educational purposes only.
 
 ---
 
