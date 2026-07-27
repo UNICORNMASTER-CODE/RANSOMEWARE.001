@@ -205,16 +205,6 @@ The described capabilities include:
 
 ## C2 Server Installation
 
-### Option 1 — Quick Install
-
-```bash
-# Install dependencies
-pip install Flask==2.3.2 Flask-SocketIO==5.3.4 python-socketio==5.8.0 eventlet==0.33.3
-
-# Run
-python c2_server.py
-```
-
 ### Windows
 
 ```powershell
