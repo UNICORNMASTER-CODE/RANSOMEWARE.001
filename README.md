@@ -5,7 +5,7 @@
 ## Table of Contents
 
 - [Quick Start Guide](#quick-start-guide)
-- [Features](#features)
+- [License](#license)
 - [Overview](#overview)
 - [Features](#features)
 - [System Architecture](#system-architecture)
